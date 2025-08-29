@@ -169,8 +169,8 @@ impl Render for Dock {
             self.window_handle = Some(window.window_handle());
         }
 
-        let dock_width = px(475.0);
-        let dock_height = px(70.0);
+        let dock_width = px(370.0);
+        let dock_height = px(55.0);
 
         let dock_size = Size {
             width: dock_width,
@@ -212,14 +212,13 @@ impl Render for Dock {
             .items_center()
             .text_xl()
             .text_color(rgb(0xffffff))
-            .bg(rgba(0x000000)) // Semi-transparent background
             .rounded_xl()
             .children(self.apps.iter().enumerate().map(|(index, app)| {
                 let icon_path = app.icon.clone();
 
                 div()
                     .p_3()
-                    .m_1()
+                    .m(px(-5.))
                     .rounded_lg()
                     .cursor_pointer()
                     .on_mouse_down(
@@ -268,7 +267,7 @@ fn main() {
 
         let dock_width = px(475.0);
         let dock_height = px(70.0);
-        let margin_from_bottom = px(20.0);
+        let margin_from_bottom = px(0.0);
 
         let dock_size = Size {
             width: dock_width,
