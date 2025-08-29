@@ -33,7 +33,6 @@ struct Dock {
     is_visible: Arc<AtomicBool>,
     mouse_thread_started: bool,
     window_handle: Option<AnyWindowHandle>,
-    window_options: WindowOptions,
 }
 
 struct DockApp {
@@ -42,13 +41,13 @@ struct DockApp {
 }
 
 pub fn window_options() -> WindowOptions {
-        let mut window_options = WindowOptions::default();
-        window_options.titlebar = None;
-        window_options.window_decorations = None;
-        window_options.window_background = WindowBackgroundAppearance::Blurred;
-        window_options.is_movable = false;
-        window_options.kind = WindowKind::PopUp;
-        window_options
+    let mut window_options = WindowOptions::default();
+    window_options.titlebar = None;
+    window_options.window_decorations = None;
+    window_options.window_background = WindowBackgroundAppearance::Blurred;
+    window_options.is_movable = false;
+    window_options.kind = WindowKind::PopUp;
+    window_options
 }
 
 impl Dock {
@@ -58,7 +57,6 @@ impl Dock {
             is_visible: Arc::new(AtomicBool::new(false)),
             window_handle: None,
             mouse_thread_started: false,
-            window_options: window_options(),
         }
     }
 
@@ -69,7 +67,6 @@ impl Dock {
 
         self.mouse_thread_started = true;
         let is_visible = Arc::clone(&self.is_visible);
-        let window_handle = self.window_handle.clone();
 
         // Spawn background task that runs on a separate thread
         cx.background_executor()
@@ -114,7 +111,7 @@ impl Dock {
                 if let Some(dock) = dock_entity.upgrade() {
                     cx.update_entity(&dock, |dock, _cx| {
                         current_visible = dock.is_visible.load(Ordering::Relaxed);
-                        window_handle_opt = dock.window_handle.clone();
+                        window_handle_opt = dock.window_handle;
                     })
                     .ok();
                 }
@@ -128,13 +125,8 @@ impl Dock {
                             // Show the window
                             cx.update_window(window_handle, |_, window, _| {
                                 window.activate_window();
-                            }).ok();
-                        } else {
-                            // Hide the window by minimizing it or moving it off-screen
-                            cx.update_window(window_handle, |_, _, cx| {
-                                // You could also use cx.minimize_window() if available
-                                // For now, we'll just rely on the render method
-                            }).ok();
+                            })
+                            .ok();
                         }
                     }
 
@@ -186,7 +178,7 @@ impl Render for Dock {
         };
 
         if self.window_handle.is_none() {
-            self.window_handle = Some(window.window_handle().into());
+            self.window_handle = Some(window.window_handle());
         }
 
         // Start monitoring thread if not already started
@@ -198,14 +190,13 @@ impl Render for Dock {
         // Check if dock should be visible
         let is_visible = self.is_visible.load(Ordering::Relaxed);
 
-
         if !is_visible {
-            window.resize(Size { width: px(1.), height: px(1.) });
+            window.resize(Size {
+                width: px(1.),
+                height: px(1.),
+            });
             // Return a completely transparent/empty element when hidden
-            return div()
-                .size_full()
-                .absolute()
-                .opacity(0.0);
+            return div().size_full().absolute().opacity(0.0);
         } else {
             window.resize(dock_size);
         }
@@ -255,7 +246,7 @@ impl Render for Dock {
                                     .text_color(rgb(0x888888))
                                     .child("?")
                                     .into_any_element()
-                            })
+                            }),
                     )
             }));
 
