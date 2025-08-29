@@ -169,8 +169,8 @@ impl Render for Dock {
             self.window_handle = Some(window.window_handle());
         }
 
-        let dock_width = px(370.0);
-        let dock_height = px(55.0);
+        let dock_width = px(345.0);
+        let dock_height = px(50.);
 
         let dock_size = Size {
             width: dock_width,
@@ -202,8 +202,6 @@ impl Render for Dock {
         }
 
         // Set window properties when visible
-        window.set_background_appearance(WindowBackgroundAppearance::Blurred);
-        window.set_client_inset(px(10.0));
 
         let dock = div()
             .flex()
@@ -231,7 +229,7 @@ impl Render for Dock {
                     )
                     .child(
                         img(icon_path.clone())
-                            .size_12()
+                            .size_11()
                             .rounded_md()
                             .with_fallback(|| {
                                 div()
@@ -240,7 +238,6 @@ impl Render for Dock {
                                     .items_center()
                                     .justify_center()
                                     .rounded_md()
-                                    .bg(rgba(0x333333))
                                     .text_sm()
                                     .text_color(rgb(0x888888))
                                     .child("?")
@@ -265,8 +262,8 @@ fn main() {
         let displays = cx.displays();
         let primary_display = &displays[0];
 
-        let dock_width = px(475.0);
-        let dock_height = px(70.0);
+        let dock_width = px(345.0);
+        let dock_height = px(50.);
         let margin_from_bottom = px(0.0);
 
         let dock_size = Size {
@@ -276,7 +273,7 @@ fn main() {
 
         let dock_bounds = Bounds {
             origin: point(
-                primary_display.bounds().center().x - dock_size.center().x,
+                primary_display.bounds().center().x - (dock_size.width / 2.),
                 primary_display.bounds().size.height - dock_height - margin_from_bottom,
             ),
             size: dock_size,
