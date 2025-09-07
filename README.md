@@ -24,7 +24,3 @@ or
 ```zsh
 cargo run --release
 ```
-
-
-
->>>>>>> Stashed changes
