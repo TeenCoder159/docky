@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Zen",
+    "icon": "/Users/mop/.config/docky/assets/zen.png"
+  },
+  {
+    "name": "Discord",
+    "icon": "/Users/mop/.config/docky/assets/discord.png"
+  },
+  {
+    "name": "Ghostty",
+    "icon": "/Users/mop/.config/docky/assets/ghostty.png"
+  },
+  {
+    "name": "Obsidian",
+    "icon": "/Users/mop/.config/docky/assets/obsidian.png"
+  },
+  {
+    "name": "ChatGPT",
+    "icon": "/Users/mop/.config/docky/assets/chatgpt.png"
+  },
+  {
+    "name": "Spotify",
+    "icon": "/Users/mop/.config/docky/assets/spotify.png"
+  }
+]
