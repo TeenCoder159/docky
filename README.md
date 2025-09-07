@@ -1,17 +1,6 @@
-# dock
+# Docky
 
-Created with Create GPUI App.
-
-- [`gpui`](https://www.gpui.rs/)
-- [GPUI documentation](https://github.com/zed-industries/zed/tree/main/crates/gpui/docs)
-- [GPUI examples](https://github.com/zed-industries/zed/tree/main/crates/gpui/examples)
-
-<<<<<<< Updated upstream
-## Usage
-
-- Ensure Rust is installed - [Rustup](https://rustup.rs/)
-- Run your app with `cargo run`
-=======
+Docky is a simple custom macos dock that can be configured with a file in .config/docky/apps.json, and you can use custom icons for your app, by using your own images and providing their respective path in the json config file. [See the example config](.config/docky/apps.json)
 ## Usage:
 I am currently using tmux to run it, but you can use nohup.
 
