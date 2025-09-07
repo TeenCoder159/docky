@@ -1278,6 +1278,8 @@ dependencies = [
  "gpui",
  "gpui_macros",
  "objc",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

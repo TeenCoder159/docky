@@ -12,6 +12,7 @@ use objc::msg_send;
 use objc::runtime::{Class, Object};
 use objc::sel;
 use objc::sel_impl;
+use serde::{Deserialize, Serialize};
 
 #[repr(u64)]
 enum ActivationPolicy {
@@ -35,6 +36,7 @@ struct Dock {
     window_handle: Option<AnyWindowHandle>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 struct DockApp {
     name: String,
     icon: PathBuf,
@@ -150,7 +152,7 @@ impl DockApp {
     fn new(name: impl ToString) -> Self {
         Self {
             name: name.to_string(),
-            icon: format!("assets/{}.png", name.to_string().to_lowercase()).into(),
+            icon: format!("{}/.config/docky/assets/{}.png", std::env::var("HOME").unwrap(), name.to_string().to_lowercase()).into(),
         }
     }
 
@@ -252,12 +254,12 @@ impl Render for Dock {
 
 fn main() {
     Application::new().run(|cx: &mut App| {
-        let mut apps = vec![DockApp::new("Zen")];
-        apps.push(DockApp::new("Discord"));
-        apps.push(DockApp::new("Ghostty"));
-        apps.push(DockApp::new("Obsidian"));
-        apps.push(DockApp::new("ChatGPT"));
-        apps.push(DockApp::new("Spotify"));
+        let config_file_contents = std::fs::read_to_string(
+            std::env::var("HOME").expect("Unusual error occurred") + "/.config/docky/apps.json",
+        )
+        .expect("Error reading config file");
+        let apps: Vec<DockApp> = serde_json::from_str(&config_file_contents)
+            .expect("Invalid json syntax in config file");
 
         let displays = cx.displays();
         let primary_display = &displays[0];
