@@ -30,10 +30,25 @@ fn set_activation_policy(policy: ActivationPolicy) {
 }
 
 struct Dock {
-    apps: Vec<DockApp>,
+    config: Config,
     is_visible: Arc<AtomicBool>,
     mouse_thread_started: bool,
     window_handle: Option<AnyWindowHandle>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Config {
+    dock_height: f32,
+    dock_width: f32,
+    apps: Vec<DockApp>,
+}
+
+impl Config {
+    pub fn load_config() -> Self {
+        let home_dir = std::env::var("HOME").expect("Error, HOME env var not set.");
+        let config_file = std::fs::read_to_string(home_dir + "/.config/docky/apps.json").expect("Unable to read config file.");
+        serde_json::from_str(&config_file).expect("Invalid json syntax")
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -52,10 +67,13 @@ pub fn window_options() -> WindowOptions {
     window_options
 }
 
+
+
 impl Dock {
-    fn new(apps: Vec<DockApp>) -> Self {
+    fn new() -> Self {
+        let config = Config::load_config();
         Self {
-            apps,
+            config,
             is_visible: Arc::new(AtomicBool::new(false)),
             window_handle: None,
             mouse_thread_started: false,
@@ -149,13 +167,6 @@ impl Dock {
 }
 
 impl DockApp {
-    fn new(name: impl ToString) -> Self {
-        Self {
-            name: name.to_string(),
-            icon: format!("{}/.config/docky/assets/{}.png", std::env::var("HOME").unwrap(), name.to_string().to_lowercase()).into(),
-        }
-    }
-
     fn launch_app(&self) {
         let app_name = self.name.clone();
         std::thread::spawn(move || {
@@ -171,8 +182,8 @@ impl Render for Dock {
             self.window_handle = Some(window.window_handle());
         }
 
-        let dock_width = px(345.0);
-        let dock_height = px(50.);
+        let dock_width = px(self.config.dock_width);
+        let dock_height = px(self.config.dock_height);
 
         let dock_size = Size {
             width: dock_width,
@@ -213,7 +224,7 @@ impl Render for Dock {
             .text_xl()
             .text_color(rgb(0xffffff))
             .rounded_xl()
-            .children(self.apps.iter().enumerate().map(|(index, app)| {
+            .children(self.config.apps.iter().enumerate().map(|(index, app)| {
                 let icon_path = app.icon.clone();
 
                 div()
@@ -224,7 +235,7 @@ impl Render for Dock {
                     .on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |dock, _event, _cx, _| {
-                            if let Some(dock_app) = dock.apps.get(index) {
+                            if let Some(dock_app) = dock.config.apps.get(index) {
                                 dock_app.launch_app();
                             }
                         }),
@@ -254,18 +265,15 @@ impl Render for Dock {
 
 fn main() {
     Application::new().run(|cx: &mut App| {
-        let config_file_contents = std::fs::read_to_string(
-            std::env::var("HOME").expect("Unusual error occurred") + "/.config/docky/apps.json",
-        )
-        .expect("Error reading config file");
-        let apps: Vec<DockApp> = serde_json::from_str(&config_file_contents)
-            .expect("Invalid json syntax in config file");
+        let dock = Dock::new();
+
+        let config = &dock.config;
 
         let displays = cx.displays();
         let primary_display = &displays[0];
 
-        let dock_width = px(345.0);
-        let dock_height = px(50.);
+        let dock_width = px(config.dock_width);
+        let dock_height = px(config.dock_height);
         let margin_from_bottom = px(0.0);
 
         let dock_size = Size {
@@ -284,7 +292,7 @@ fn main() {
         window_opts.window_bounds = Some(WindowBounds::Windowed(dock_bounds));
         window_opts.display_id = Some(primary_display.id());
 
-        cx.open_window(window_opts, |_, cx| cx.new(|_cx| Dock::new(apps)))
+        cx.open_window(window_opts, |_, cx| cx.new(|_cx| dock))
             .unwrap();
 
         set_activation_policy(ActivationPolicy::Accessory);
