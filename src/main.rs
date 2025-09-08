@@ -36,17 +36,34 @@ struct Dock {
     window_handle: Option<AnyWindowHandle>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+enum BackgroundType {
+    Blurred,
+    Transparent,
+}
+
+impl BackgroundType {
+    pub fn to_background(&self) -> WindowBackgroundAppearance {
+        match self {
+            Self::Blurred => WindowBackgroundAppearance::Blurred,
+            Self::Transparent => WindowBackgroundAppearance::Transparent,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct Config {
     dock_height: f32,
     dock_width: f32,
     apps: Vec<DockApp>,
+    background: Option<BackgroundType>,
 }
 
 impl Config {
     pub fn load_config() -> Self {
         let home_dir = std::env::var("HOME").expect("Error, HOME env var not set.");
-        let config_file = std::fs::read_to_string(home_dir + "/.config/docky/apps.json").expect("Unable to read config file.");
+        let config_file = std::fs::read_to_string(home_dir + "/.config/docky/apps.json")
+            .expect("Unable to read config file.");
         serde_json::from_str(&config_file).expect("Invalid json syntax")
     }
 }
@@ -66,8 +83,6 @@ pub fn window_options() -> WindowOptions {
     window_options.kind = WindowKind::PopUp;
     window_options
 }
-
-
 
 impl Dock {
     fn new() -> Self {
@@ -181,6 +196,14 @@ impl Render for Dock {
         if self.window_handle.is_none() {
             self.window_handle = Some(window.window_handle());
         }
+
+        let bg_config = self
+            .config
+            .background
+            .clone()
+            .unwrap_or(BackgroundType::Blurred)
+            .to_background();
+        window.set_background_appearance(bg_config);
 
         let dock_width = px(self.config.dock_width);
         let dock_height = px(self.config.dock_height);

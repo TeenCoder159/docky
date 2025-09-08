@@ -1,6 +1,7 @@
 {
   "dock_height": 50.0,
   "dock_width": 345.0,
+  "background" : "Blurred or Transparent, default value is blurred", 
   "apps": [
     {
       "name": "Zen",
