@@ -7,6 +7,13 @@ your own images and providing their respective path in the json config file.
 
 ## Usage:
 
+You would probably want to kill the current MacOS dock:
+```
+defaults write com.apple.dock autohide -bool true\
+defaults write com.apple.dock autohide-delay -float 1000\
+killall Dock
+```
+
 I am currently using tmux to run it, but you can use nohup.
 
 My Config is visible inside the .config, and you will need to modify the width
