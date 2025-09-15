@@ -30,7 +30,7 @@ fn set_activation_policy(policy: ActivationPolicy) {
 }
 
 struct Dock {
-    config: Config,
+    config: Arc<Config>,
     is_visible: Arc<AtomicBool>,
     mouse_thread_started: bool,
     window_handle: Option<AnyWindowHandle>,
@@ -51,10 +51,11 @@ impl BackgroundType {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Config {
     dock_height: f32,
     dock_width: f32,
+    mouse_margin: f32,
     apps: Vec<DockApp>,
     background: Option<BackgroundType>,
 }
@@ -68,7 +69,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct DockApp {
     name: String,
     icon: PathBuf,
@@ -86,7 +87,7 @@ pub fn window_options() -> WindowOptions {
 
 impl Dock {
     fn new() -> Self {
-        let config = Config::load_config();
+        let config = Arc::new(Config::load_config());
         Self {
             config,
             is_visible: Arc::new(AtomicBool::new(false)),
@@ -102,6 +103,7 @@ impl Dock {
 
         self.mouse_thread_started = true;
         let is_visible = Arc::clone(&self.is_visible);
+        let config = Arc::clone(&self.config);
 
         // Spawn background task that runs on a separate thread
         cx.background_executor()
@@ -115,12 +117,14 @@ impl Dock {
                 loop {
                     let should_show = match enigo.location() {
                         Ok(location) => {
+                            let mouse_x = location.0 as f32;
                             let mouse_y = location.1 as f32;
+
                             // Show dock if mouse is within specified distance from bottom
                             if is_visible.load(Ordering::Relaxed) {
-                                mouse_y >= (screen_height - 100.0) // Hide when mouse moves away
+                                mouse_y >= (screen_height - (config.dock_height + config.mouse_margin)) && (mouse_x >= (config.dock_width + config.mouse_margin))
                             } else {
-                                mouse_y >= (screen_height - 20.0) // Show when mouse is close to bottom
+                                mouse_y >= (screen_height - config.mouse_margin) // Show when mouse is close to bottom
                             }
                         }
                         Err(_) => false,
